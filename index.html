@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fake Data Generator</title>
+    <title>Business Calendar - Janaúba & Locations</title>
     <style>
         * {
             margin: 0;
@@ -15,36 +15,57 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             padding: 20px;
         }
 
         .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
             background: white;
+            padding: 30px;
             border-radius: 10px;
+            margin-bottom: 30px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            padding: 40px;
-            max-width: 600px;
-            width: 100%;
+            text-align: center;
         }
 
         h1 {
             color: #333;
             margin-bottom: 10px;
-            text-align: center;
         }
 
         .subtitle {
             color: #666;
-            text-align: center;
-            margin-bottom: 30px;
             font-size: 14px;
         }
 
-        .form-group {
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+        }
+
+        .card h2 {
+            color: #333;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
         }
 
         label {
@@ -54,18 +75,24 @@
             margin-bottom: 8px;
         }
 
-        select, input {
+        select, input, textarea {
             width: 100%;
             padding: 12px;
             border: 2px solid #ddd;
             border-radius: 5px;
             font-size: 14px;
+            font-family: inherit;
             transition: border-color 0.3s;
         }
 
-        select:focus, input:focus {
+        select:focus, input:focus, textarea:focus {
             outline: none;
             border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
         }
 
         button {
@@ -89,199 +116,513 @@
             transform: translateY(0);
         }
 
-        .result {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f5f5f5;
-            border-radius: 5px;
-            display: none;
+        .calendar-container {
+            display: flex;
+            gap: 20px;
         }
 
-        .result.show {
-            display: block;
+        .calendar {
+            flex: 1;
         }
 
-        .result-item {
+        .month-nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
         }
 
-        .result-item:last-child {
-            border-bottom: none;
+        .month-nav button {
+            width: auto;
+            padding: 8px 15px;
+            font-size: 14px;
         }
 
-        .result-label {
+        .current-month {
             font-weight: 600;
             color: #333;
         }
 
-        .result-value {
-            color: #667eea;
-            font-family: monospace;
-            word-break: break-all;
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
         }
 
-        .copy-btn {
-            padding: 6px 12px;
+        .calendar-header {
+            font-weight: 600;
+            color: #667eea;
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f9f9f9;
+            font-size: 12px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-day:hover {
+            background: #e8e8ff;
+            border-color: #667eea;
+        }
+
+        .calendar-day.other-month {
+            color: #ccc;
+        }
+
+        .calendar-day.today {
             background: #667eea;
             color: white;
-            border: none;
-            border-radius: 3px;
-            font-size: 12px;
-            cursor: pointer;
-            margin-left: 10px;
+            font-weight: 600;
         }
 
-        .copy-btn:hover {
+        .calendar-day.has-event {
+            border-color: #764ba2;
+            font-weight: 600;
+        }
+
+        .event-indicator {
+            width: 4px;
+            height: 4px;
             background: #764ba2;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 2px;
+        }
+
+        .events-list {
+            margin-top: 20px;
+        }
+
+        .event-item {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .event-item.job {
+            border-left-color: #764ba2;
+        }
+
+        .event-time {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 12px;
+        }
+
+        .event-title {
+            font-weight: 600;
+            color: #333;
+            margin-top: 3px;
+        }
+
+        .event-location {
+            color: #666;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .event-description {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .delete-btn {
+            width: auto;
+            padding: 4px 8px;
+            background: #e74c3c;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .locations-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .location-badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .location-badge.janauuba {
+            background: #764ba2;
+        }
+
+        @media (max-width: 968px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .calendar-container {
+                flex-direction: column;
+            }
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: transparent;
+            color: #666;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: auto;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .no-events {
+            text-align: center;
+            color: #999;
+            padding: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔮 Fake Data Generator</h1>
-        <p class="subtitle">Generate realistic fake data for testing purposes</p>
+        <header>
+            <h1>📅 Business Calendar</h1>
+            <p class="subtitle">Appointments & Job Opportunities in Janaúba and surrounding regions</p>
+        </header>
 
-        <form id="generatorForm">
-            <div class="form-group">
-                <label for="dataType">Select Data Type:</label>
-                <select id="dataType" required>
-                    <option value="">-- Choose --</option>
-                    <option value="name">Full Name</option>
-                    <option value="email">Email Address</option>
-                    <option value="phone">Phone Number</option>
-                    <option value="address">Address</option>
-                    <option value="credit-card">Credit Card</option>
-                    <option value="ssn">Social Security Number</option>
-                    <option value="username">Username</option>
-                    <option value="password">Password</option>
-                </select>
+        <div class="main-content">
+            <!-- Left Panel: Add Events -->
+            <div class="card">
+                <h2>➕ Add Event</h2>
+
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="appointment">Appointment</button>
+                    <button class="tab-btn" data-tab="job">Job Listing</button>
+                </div>
+
+                <!-- Appointment Tab -->
+                <div id="appointment" class="tab-content active">
+                    <form id="appointmentForm">
+                        <div class="form-group">
+                            <label for="apptDate">Date:</label>
+                            <input type="date" id="apptDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="apptTime">Time:</label>
+                            <input type="time" id="apptTime" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="apptTitle">Title:</label>
+                            <input type="text" id="apptTitle" placeholder="e.g., Client Meeting, Doctor Appointment" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="apptLocation">Location:</label>
+                            <select id="apptLocation" required>
+                                <option value="">-- Select Location --</option>
+                                <option value="Janaúba">Janaúba</option>
+                                <option value="Montes Claros">Montes Claros</option>
+                                <option value="Bocaiúva">Bocaiúva</option>
+                                <option value="Coração de Jesus">Coração de Jesus</option>
+                                <option value="Buritizeiro">Buritizeiro</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="apptDescription">Description:</label>
+                            <textarea id="apptDescription" placeholder="Additional details..."></textarea>
+                        </div>
+
+                        <button type="submit">Add Appointment</button>
+                    </form>
+                </div>
+
+                <!-- Job Tab -->
+                <div id="job" class="tab-content">
+                    <form id="jobForm">
+                        <div class="form-group">
+                            <label for="jobDate">Application Deadline:</label>
+                            <input type="date" id="jobDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="jobTitle">Job Title:</label>
+                            <input type="text" id="jobTitle" placeholder="e.g., Software Developer, Manager" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="jobLocation">Location:</label>
+                            <select id="jobLocation" required>
+                                <option value="">-- Select Location --</option>
+                                <option value="Janaúba">Janaúba</option>
+                                <option value="Montes Claros">Montes Claros</option>
+                                <option value="Bocaiúva">Bocaiúva</option>
+                                <option value="Coração de Jesus">Coração de Jesus</option>
+                                <option value="Buritizeiro">Buritizeiro</option>
+                                <option value="Remote">Remote</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="jobCompany">Company:</label>
+                            <input type="text" id="jobCompany" placeholder="Company name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="jobDescription">Job Description:</label>
+                            <textarea id="jobDescription" placeholder="Position details, requirements, salary range..."></textarea>
+                        </div>
+
+                        <button type="submit">Add Job Listing</button>
+                    </form>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="quantity">Quantity:</label>
-                <input type="number" id="quantity" min="1" max="100" value="1" required>
+            <!-- Right Panel: Calendar & Events -->
+            <div class="card">
+                <h2>📆 Calendar View</h2>
+
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-number" id="totalAppointments">0</div>
+                        <div class="stat-label">Appointments</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="totalJobs">0</div>
+                        <div class="stat-label">Job Listings</div>
+                    </div>
+                </div>
+
+                <div class="calendar-container">
+                    <div class="calendar">
+                        <div class="month-nav">
+                            <button id="prevMonth" class="nav-btn">← Prev</button>
+                            <span class="current-month" id="currentMonth"></span>
+                            <button id="nextMonth" class="nav-btn">Next →</button>
+                        </div>
+
+                        <div class="calendar-grid" id="calendarGrid"></div>
+                    </div>
+                </div>
+
+                <div class="events-list">
+                    <h3 style="margin-bottom: 15px; color: #333;">📌 Events Today</h3>
+                    <div id="todayEvents" class="no-events">No events scheduled for today</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Events by Date Section -->
+        <div class="card">
+            <h2>📋 All Events</h2>
+
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="all-events">All</button>
+                <button class="tab-btn" data-tab="appointments">Appointments</button>
+                <button class="tab-btn" data-tab="jobs">Jobs</button>
             </div>
 
-            <button type="submit">Generate Fake Data</button>
-        </form>
+            <div id="all-events" class="tab-content active">
+                <div id="allEventsList" class="no-events">No events yet</div>
+            </div>
 
-        <div id="result" class="result">
-            <div id="resultContent"></div>
+            <div id="appointments" class="tab-content">
+                <div id="appointmentsList" class="no-events">No appointments scheduled</div>
+            </div>
+
+            <div id="jobs" class="tab-content">
+                <div id="jobsList" class="no-events">No job listings</div>
+            </div>
         </div>
     </div>
 
     <script>
-        const firstNames = ['James', 'Mary', 'Robert', 'Patricia', 'Michael', 'Jennifer', 'William', 'Linda', 'David', 'Barbara', 'John', 'Susan'];
-        const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
-        const domains = ['gmail.com', 'yahoo.com', 'outlook.com', 'example.com', 'test.com'];
-        const streets = ['Main St', 'Oak Ave', 'Elm St', 'Maple Dr', 'Pine Rd', 'Cedar Ln'];
-        const cities = ['Springfield', 'Shelbyville', 'Capital City', 'Metropolis', 'Gotham'];
-        const states = ['CA', 'NY', 'TX', 'FL', 'PA', 'IL', 'OH', 'GA', 'NC', 'MI'];
+        // Initialize with today's date
+        const today = new Date();
+        document.getElementById('apptDate').valueAsDate = today;
+        document.getElementById('jobDate').valueAsDate = today;
 
-        function getRandomItem(arr) {
-            return arr[Math.floor(Math.random() * arr.length)];
-        }
+        let events = JSON.parse(localStorage.getItem('businessEvents')) || [];
+        let currentDate = new Date(today.getFullYear(), today.getMonth(), 1);
 
-        function generateName() {
-            return `${getRandomItem(firstNames)} ${getRandomItem(lastNames)}`;
-        }
+        const locations = ['Janaúba', 'Montes Claros', 'Bocaiúva', 'Coração de Jesus', 'Buritizeiro', 'Remote', 'Other'];
 
-        function generateEmail() {
-            const name = `${getRandomItem(firstNames).toLowerCase()}${Math.floor(Math.random() * 9999)}`;
-            return `${name}@${getRandomItem(domains)}`;
-        }
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabGroup = btn.parentElement;
+                const tabId = btn.dataset.tab;
+                
+                // Remove active from all buttons in this group
+                tabGroup.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                
+                // Add active to clicked button
+                btn.classList.add('active');
+                
+                // Hide all content in this group's parent
+                const parent = tabGroup.parentElement;
+                parent.querySelectorAll('[class*="tab-content"]').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Show selected content
+                document.getElementById(tabId).classList.add('active');
+                
+                if (['all-events', 'appointments', 'jobs'].includes(tabId)) {
+                    renderAllEvents();
+                }
+            });
+        });
 
-        function generatePhone() {
-            return `+1-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`;
-        }
-
-        function generateAddress() {
-            const street = `${Math.floor(Math.random() * 9999) + 1} ${getRandomItem(streets)}`;
-            const city = getRandomItem(cities);
-            const state = getRandomItem(states);
-            const zip = `${Math.floor(Math.random() * 90000) + 10000}`;
-            return `${street}, ${city}, ${state} ${zip}`;
-        }
-
-        function generateCreditCard() {
-            let cc = '4';
-            for (let i = 0; i < 15; i++) {
-                cc += Math.floor(Math.random() * 10);
-            }
-            return cc.match(/.{1,4}/g).join(' ');
-        }
-
-        function generateSSN() {
-            const part1 = Math.floor(Math.random() * 900) + 100;
-            const part2 = Math.floor(Math.random() * 90) + 10;
-            const part3 = Math.floor(Math.random() * 9000) + 1000;
-            return `${part1}-${part2}-${part3}`;
-        }
-
-        function generateUsername() {
-            const adjectives = ['happy', 'clever', 'quick', 'bright', 'swift'];
-            return `${getRandomItem(adjectives)}${getRandomItem(firstNames).toLowerCase()}${Math.floor(Math.random() * 999)}`;
-        }
-
-        function generatePassword() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
-            let pwd = '';
-            for (let i = 0; i < 12; i++) {
-                pwd += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return pwd;
-        }
-
-        function generateData(type) {
-            switch(type) {
-                case 'name': return generateName();
-                case 'email': return generateEmail();
-                case 'phone': return generatePhone();
-                case 'address': return generateAddress();
-                case 'credit-card': return generateCreditCard();
-                case 'ssn': return generateSSN();
-                case 'username': return generateUsername();
-                case 'password': return generatePassword();
-                default: return '';
-            }
-        }
-
-        document.getElementById('generatorForm').addEventListener('submit', (e) => {
+        // Form submissions
+        document.getElementById('appointmentForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            const type = document.getElementById('dataType').value;
-            const quantity = parseInt(document.getElementById('quantity').value);
-
-            const typeLabels = {
-                'name': 'Full Name',
-                'email': 'Email',
-                'phone': 'Phone',
-                'address': 'Address',
-                'credit-card': 'Credit Card',
-                'ssn': 'SSN',
-                'username': 'Username',
-                'password': 'Password'
+            
+            const event = {
+                id: Date.now(),
+                type: 'appointment',
+                date: document.getElementById('apptDate').value,
+                time: document.getElementById('apptTime').value,
+                title: document.getElementById('apptTitle').value,
+                location: document.getElementById('apptLocation').value,
+                description: document.getElementById('apptDescription').value
             };
 
-            let html = '';
-            for (let i = 0; i < quantity; i++) {
-                const data = generateData(type);
-                html += `
-                    <div class="result-item">
-                        <div>
-                            <div class="result-label">${typeLabels[type]} ${quantity > 1 ? '#' + (i + 1) : ''}</div>
-                            <div class="result-value">${data}</div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            document.getElementById('resultContent').innerHTML = html;
-            document.getElementById('result').classList.add('show');
+            events.push(event);
+            saveEvents();
+            renderCalendar();
+            renderAllEvents();
+            document.getElementById('appointmentForm').reset();
+            document.getElementById('apptDate').valueAsDate = new Date();
+            alert('Appointment added successfully!');
         });
-    </script>
-</body>
-              </html>
+
+        document.getElementById('jobForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const event = {
+                id: Date.now(),
+                type: 'job',
+                date: document.getElementById('jobDate').value,
+                title: document.getElementById('jobTitle').value,
+                location: document.getElementById('jobLocation').value,
+                company: document.getElementById('jobCompany').value,
+                description: document.getElementById('jobDescription').value
+            };
+
+            events.push(event);
+            saveEvents();
+            renderCalendar();
+            renderAllEvents();
+            document.getElementById('jobForm').reset();
+            document.getElementById('jobDate').valueAsDate = new Date();
+            alert('Job listing added successfully!');
+        });
+
+        // Calendar functions
+        function saveEvents() {
+            localStorage.setItem('businessEvents', JSON.stringify(events));
+            updateStats();
+        }
+
+        function updateStats() {
+            const appointments = events.filter(e => e.type === 'appointment').length;
+            const jobs = events.filter(e => e.type === 'job').length;
+            document.getElementById('totalAppointments').textContent = appointments;
+            document.getElementById('totalJobs').textContent = jobs;
+        }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            document.getElementById('currentMonth').textContent = 
+                currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            // Header
+            ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+
+        
